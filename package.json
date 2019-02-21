@@ -3,19 +3,23 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "dev": "webpack-dev-server"
+    "build": "webpack --config webpack.prod.js",
+    "dev": "webpack-dev-server --config webpack.dev.js"
   },
   "license": "MIT",
   "devDependencies": {
     "clean-webpack-plugin": "^1.0.1",
+    "css-loader": "^2.1.0",
     "html-webpack-plugin": "^3.2.0",
+    "style-loader": "^0.23.1",
     "webpack": "^4.29.5",
     "webpack-cli": "^3.2.3",
     "webpack-dev-middleware": "^3.6.0",
     "webpack-dev-server": "^3.1.14"
   },
   "dependencies": {
-    "copy-webpack-plugin": "^4.6.0"
+    "bootstrap": "^4.3.1",
+    "copy-webpack-plugin": "^4.6.0",
+    "webpack-merge": "^4.2.1"
   }
 }

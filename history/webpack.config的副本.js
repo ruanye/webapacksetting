@@ -6,16 +6,28 @@ let webpack = require('webpack')
 module.exports={
   mode:'production',
   entry:'./src/index.js',
-  devServer:{
-     before(app){
-       app.get('/user',function(req,res){
-         res.json({name:"hanmeimei"})
-       })
-     }
-  },
-  output:{
-	  filename:'main[hash].js',
+   devServer:{
+     contentBase:'./dist'
+   },
+   output:{
+	  filename:'js/main[hash].js',
 	  path:path.resolve(__dirname,'dist')
+  },
+  module:{
+    rules:[
+      {
+        test:/\.css$/,
+        use:['style-loader','css-loader']
+      }
+    ]
+  },
+  resolve:{
+    // modules:[path.resolve('node_modules')],
+    extensions:['.js','.css','.json','.vue'],
+    alias:{
+        // bootstrap:'bootstrap/dist/css/bootstrap.css'
+     },
+     mainFileds:['style','main']
   },
   plugins:[
     new HtmlWebPackPlugin({

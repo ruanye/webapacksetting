@@ -1,5 +1,7 @@
 ## webpack  配置篇 
 
+
+
 ## 打包多页应用
 - src 下面创建4个文件 index.html b.html index.js b.js 
 - 入口需要配置成对象
@@ -95,12 +97,19 @@ let compiler = webpack(config);
 
 app.use(middle(compiler));
 ```
+
     
 ## resolve用法
-extensions 拓展名 
-alias:别名  bootstrap:'bootstrap/dist/css/bootstrap.css'
+
+- extensions 拓展名  在import 引用的时候可以省略文件的后缀名 
+- alias:别名  
+- bootstrap:'bootstrap/dist/css/- bootstrap.css' 
+名字:后面是对应的路径 
+- 在第三方包的package.json 里面会先查找main字段 main:主入口  然后在查找其他字段 
+
+- modules: 可以直接指定查找的目录层级，不在往上一级目录去找  
 mainFields 可以配置先找哪个入口
-mainFiles：入口文件的名字 
+mainFiles：入口文件的名字  通常都是index.js 
 ```
 resolve:{
     modules:[path.resolve('node_modules')],
@@ -113,9 +122,17 @@ resolve:{
  }
 ```
 ## 区分环境
+- yarn add webpack-merge (合并文件的包)
 webpack.config.js改成 webpack.base.js
 新建文件 webpack.prod.js 和 webpack.dev.js
+- 修改脚本配置
+```
+"build": "webpack --config webpack.prod.js",
+"dev": "webpack-dev-server --inline --progress --config webpack.dev.conf.js"
+```
+   
 - 配置开发环境的写法
+- smart 是最简化版的  也可以直接写 let merge = require('webpack-merge')
 ```
 webpack.dev.js 
 let {smart} = require('webpack-merge');
@@ -147,16 +164,122 @@ module.exports = smart(base,{
 })
 ```
 ## webpack 优化
+
 1. noparse
 module: {
     noParse: /jquery/, // 不去解析jquery中的依赖库 
     ...
 }
-2. dllplugin
+2. IgnorePlugin   webpack 内置插件 以mement 库为例
+- index.js内容
+```
+ import moment from 'moment';
+ 设置语言
 
-3. 
+ 手动引入所需要的语言
+ import 'moment/locale/zh-cn'
+
+ moment.locale('zh-cn');
 
 
+ let r = moment().endOf('day').fromNow();   
+ console.log(r);
+```
+- 插件写法 
+```
+new webpack.IgnorePlugin(/\.\/locale/, /moment/)
+```
+
+3. happypack 可以使用多线程来打包 yarn add happypack
+-js多线程打包  改变babel-loader的写法
+```
+{
+        test: /\.js$/,
+        exclude: /node_modules/,
+        include: path.resolve('src'),
+        use: {
+          loader: 'happypack/loader?id=js'
+        }
+ }
+ new Happypack({
+      id:js,
+      use:[
+         loader:'babel-loader',
+         options: {
+            presets: [
+              '@babel/preset-env'],
+            plugins:[
+              '@babel/plugin-syntax-dynamic-import'
+            ]
+          }
+      ]
+   })
+ ```
+- css 也可以实现多线程打包
+```
+    {
+      test: /\.css$/,
+      use: 'Happypack/loader?id=css'
+    }
+   new Happypack({
+      id: 'css',
+      use: ['style-loader', 'css-loader']
+    })
+```
+4. webpack 自带优化
+- index.js 代码
+```
+import calc from './test';
+// import 在生产环境下 会自动去除掉没用的代码
+// tree-shaking 把没用到的代码 自动删除掉
+// es6 模块会把结果放到defalut上
+// let calc = require('./test');
+
+
+// scope hosting 作用域提升 
+let a = 1;
+let b = 2;
+let c = 3;
+let d = a+b+c; // 在webpack中自动省略 可以简化的代码
+console.log(d,'-------------');
+
+console.log(calc.default.sum(1,2));
+```
+- test.js代码
+```
+et sum = (a, b) => {
+  return a + b + 'sum';
+}
+
+let minus = (a, b) => {
+  return a - b + 'minus';
+}
+
+export default {
+  sum, minus
+}
+```
+5. 抽离公共代码(多入口)
+```
+optimization:{ // commonChunkPlugins
+    splitChunks:{ // 分割代码块
+      cacheGroups:{ // 缓存组
+        common:{ // 公共的模块
+          chunks:'initial',
+          minSize:0,
+          minChunks:2,
+        },
+        vendor:{ //第三方模块  
+          priority:1, //权重
+          test:/node_modules/, // 把你抽离出来
+          chunks: 'initial',
+          minSize: 0,
+          minChunks: 2
+        }
+      }
+    }
+  }
+```
 
 
 
